@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 )
 
@@ -22,7 +23,7 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 		sql.Named("created_at", p.CreatedAt))
 	if err != nil {
 		log.Println(err)
-		return 0, nil
+		return 0, err
 	}
 
 	id, err := res.LastInsertId()
@@ -69,11 +70,6 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 		}
 	}
 
-	// реализуйте чтение строк из таблицы parcel по заданному client
-	// здесь из таблицы может вернуться несколько строк
-
-	// заполните срез Parcel данными из таблицы
-
 	return res, nil
 }
 
@@ -91,13 +87,17 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 
 func (s ParcelStore) SetAddress(number int, address string) error {
 
-	row, _ := s.Get(number)
+	row, err := s.Get(number)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	if row.Status != ParcelStatusRegistered {
 		log.Printf("Status is not %s\n", ParcelStatusRegistered)
-		return nil
+		return errors.New("Status was not update")
 	}
 
-	_, err := s.db.Exec("UPDATE parcel SET address=:address WHERE number=:number",
+	_, err = s.db.Exec("UPDATE parcel SET address=:address WHERE number=:number",
 		sql.Named("address", address),
 		sql.Named("number", number))
 	if err != nil {
@@ -109,13 +109,17 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 }
 
 func (s ParcelStore) Delete(number int) error {
-	res, _ := s.Get(number)
+	res, err := s.Get(number)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	if res.Status != ParcelStatusRegistered {
 		log.Printf("Status is not %s", ParcelStatusRegistered)
-		return nil
+		return errors.New("Parcel data was not delete")
 	}
 
-	_, err := s.db.Exec("DELETE FROM parcel WHERE number=:number", sql.Named("number", number))
+	_, err = s.db.Exec("DELETE FROM parcel WHERE number=:number", sql.Named("number", number))
 	if err != nil {
 		log.Println(err)
 		return err
