@@ -3,7 +3,12 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+)
+
+const (
+	errWrongStatus = "Wrong status"
 )
 
 type ParcelStore struct {
@@ -93,8 +98,8 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		return err
 	}
 	if row.Status != ParcelStatusRegistered {
-		log.Printf("Status is not %s\n", ParcelStatusRegistered)
-		return errors.New("Status was not update")
+		fmt.Errorf("cannot set address for parcel: %w", errWrongStatus)
+		return errors.New("Wrong status")
 	}
 
 	_, err = s.db.Exec("UPDATE parcel SET address=:address WHERE number=:number",
@@ -115,8 +120,8 @@ func (s ParcelStore) Delete(number int) error {
 		return err
 	}
 	if res.Status != ParcelStatusRegistered {
-		log.Printf("Status is not %s", ParcelStatusRegistered)
-		return errors.New("Parcel data was not delete")
+		fmt.Errorf("cannot delete parcel: %w", errWrongStatus)
+		return errors.New("Wrong status")
 	}
 
 	_, err = s.db.Exec("DELETE FROM parcel WHERE number=:number", sql.Named("number", number))
