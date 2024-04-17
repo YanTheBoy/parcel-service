@@ -54,7 +54,7 @@ func TestAddGetDelete(t *testing.T) {
 	assert.Equal(t, parcel.Status, row.Status, "Status is incorrect")
 	assert.Equal(t, parcel.CreatedAt, row.CreatedAt, "CreatedAt is incorrect")
 
-	err = store.Delete(parcel.Number)
+	err = store.Delete(id)
 	require.NoError(t, err)
 
 	row, err = store.Get(parcel.Number)

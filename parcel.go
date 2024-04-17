@@ -7,9 +7,7 @@ import (
 	"log"
 )
 
-const (
-	errWrongStatus = "Wrong status"
-)
+var errWrongStatus = errors.New("wrong status")
 
 type ParcelStore struct {
 	db *sql.DB
@@ -98,8 +96,7 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		return err
 	}
 	if row.Status != ParcelStatusRegistered {
-		fmt.Errorf("cannot set address for parcel: %w", errWrongStatus)
-		return errors.New("Wrong status")
+		return fmt.Errorf("ошибка: не удается изменить статус посылки: %w", errWrongStatus)
 	}
 
 	_, err = s.db.Exec("UPDATE parcel SET address=:address WHERE number=:number",
@@ -119,9 +116,9 @@ func (s ParcelStore) Delete(number int) error {
 		log.Println(err)
 		return err
 	}
+
 	if res.Status != ParcelStatusRegistered {
-		fmt.Errorf("cannot delete parcel: %w", errWrongStatus)
-		return errors.New("Wrong status")
+		return fmt.Errorf("ошибка: не удается изменить статус посылки: %w", errWrongStatus)
 	}
 
 	_, err = s.db.Exec("DELETE FROM parcel WHERE number=:number", sql.Named("number", number))
